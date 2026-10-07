@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Little Sparks Playground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@500;700;800&display=swap">
+<style>
+/* Layout: a playmat. Sky field with a dotted weave, chunky "sticker" tiles with ink outlines and hard offset shadows. One bright look on purpose. */
+:root{
+  --sky:#d6eeff; --dot:#bfe1fb; --paper:#fffdf6; --ink:#1f2a44; --muted:#4f5c7a;
+  --tomato:#ff6b4a; --sun:#ffc93c; --leaf:#4cc38a; --leaf-soft:#c9f0dc; --sea:#3a8dde; --grape:#9b6bd6; --pink:#ff9cbd;
+  --scrim:rgba(31,42,68,.6);
+  --display:"Baloo 2","Comic Sans MS","Trebuchet MS",system-ui,sans-serif;
+  --read:"Andika","Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{
+  background:var(--sky) radial-gradient(circle at 2px 2px,var(--dot) 2px,transparent 0) 0 0/30px 30px;
+  color:var(--ink);font-family:var(--display);font-size:18px;line-height:1.4;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:4px solid var(--sea);outline-offset:3px}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:14px 48px}
+
+/* header */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1.65rem;line-height:1;margin-right:auto}
+.logo svg{width:40px;height:40px}
+.pill,.chip-btn{
+  display:inline-flex;align-items:center;gap:6px;background:var(--paper);
+  border:3px solid var(--ink);border-radius:999px;padding:.25rem .9rem;
+  box-shadow:3px 3px 0 var(--ink);font-weight:800;font-size:1.1rem;
+}
+.pill svg,.chip-btn svg{width:24px;height:24px;flex:none}
+.pill b{font-variant-numeric:tabular-nums;min-width:1.2em;text-align:center}
+.pill.bump{animation:bump .5s}
+.chip-btn{cursor:pointer}
+.chip-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.chip-btn[aria-pressed="false"]{opacity:.6}
+
+/* home */
+.hero{padding-block:26px 18px}
+.hero h1{font-size:clamp(2.1rem,6.5vw,3.6rem);line-height:1.02;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.hero h1 span{color:var(--tomato)}
+.hero p{font-family:var(--read);font-size:1.2rem;color:var(--muted);margin:.5rem 0 0;max-width:34em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:22px}
+.tile{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;text-align:left;
+  background:var(--paper);border:3px solid var(--ink);border-radius:24px;padding:14px;
+  box-shadow:6px 6px 0 var(--ink);cursor:pointer;transition:transform .15s,box-shadow .15s;
+}
+.tile:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink)}
+.tile:active{transform:translate(4px,4px);box-shadow:2px 2px 0 var(--ink)}
+.tile .art{width:92px;height:92px;border-radius:20px;background:var(--c);border:3px solid var(--ink);display:grid;place-items:center;font-size:54px;line-height:1}
+.tile:hover .art{animation:wiggle .5s}
+.tile h3{margin:0;font-size:1.5rem;line-height:1.1}
+.tile .skill{display:block;font-family:var(--read);color:var(--muted);font-size:1rem;margin-top:2px}
+.age{display:inline-block;margin-top:8px;font-size:.85rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;background:var(--sky);border:2px solid var(--ink);border-radius:999px;padding:0 .65rem}
+.grownups{margin-top:40px;background:var(--paper);border:3px dashed var(--ink);border-radius:20px;padding:18px 20px;font-family:var(--read);max-width:760px}
+.grownups h2{font-family:var(--display);margin:0 0 6px;font-size:1.3rem}
+.grownups ul{margin:0;padding-left:1.2em;display:grid;gap:4px;color:var(--muted)}
+
+/* play */
+.playbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-block:18px 16px}
+.playbar .title{font-weight:800;font-size:1.3rem;margin-right:auto}
+.dots{display:flex;gap:4px}
+.dots svg{width:30px;height:30px}
+.dots .on{animation:bump .5s}
+.board{
+  background:var(--paper);border:3px solid var(--ink);border-radius:30px;box-shadow:7px 7px 0 var(--ink);
+  padding:clamp(18px,4vw,36px);display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center;min-height:440px;
+}
+#prompt{font-size:clamp(1.7rem,5.5vw,2.5rem);line-height:1.12;margin:0;text-wrap:balance}
+.sw{display:inline-block;width:.8em;height:.8em;border-radius:50%;border:3px solid var(--ink);vertical-align:-.05em;margin:0 .15em 0 .1em}
+.stage{width:100%;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px}
+.choices{display:flex;flex-wrap:wrap;gap:16px;justify-content:center}
+.choice{
+  min-width:100px;min-height:100px;display:grid;place-items:center;background:var(--paper);
+  border:3px solid var(--ink);border-radius:24px;box-shadow:4px 4px 0 var(--ink);cursor:pointer;padding:10px;
+  transition:transform .12s;
+}
+.choice:hover{transform:translateY(-3px)}
+.choice:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.choice.yay{background:var(--leaf);animation:bounce .6s}
+.choice.nope{opacity:.3;animation:wobble .4s;cursor:default}
+.num{font-size:3.2rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.letter{font-family:var(--read);font-size:2.9rem;font-weight:700;line-height:1}
+.balloon{width:80px;height:120px;display:block}
+.shape{width:96px;height:96px;display:block}
+.ghost{width:150px;height:150px}
+#hint{min-height:1.6em;font-family:var(--read);font-size:1.25rem;color:var(--muted);margin:0}
+
+.obj{font-size:clamp(42px,9vw,62px);line-height:1;background:none;border:3px solid transparent;border-radius:18px;padding:4px 6px;position:relative;cursor:pointer}
+.obj.counted{background:var(--sky);border-color:var(--ink)}
+.obj.counted::after{
+  content:attr(data-n);position:absolute;top:-10px;right:-10px;min-width:30px;height:30px;padding:0 4px;
+  background:var(--tomato);color:var(--paper);border:3px solid var(--ink);border-radius:999px;font:800 16px/24px var(--display);
+}
+.pic{font-size:clamp(90px,22vw,128px);line-height:1}
+.word{font-family:var(--read);font-size:clamp(2.6rem,9vw,3.8rem);font-weight:700;letter-spacing:.04em;line-height:1.1}
+.blank{display:inline-block;min-width:.9em;border-bottom:6px solid var(--tomato);color:var(--tomato)}
+.sum{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.grp{display:flex;flex-wrap:wrap;justify-content:center;max-width:170px;font-size:40px;line-height:1.1;background:var(--sky);border:3px solid var(--ink);border-radius:20px;padding:8px}
+.op{font-size:3rem;font-weight:800}
+.eq{font-size:clamp(2.2rem,7vw,3rem);font-weight:800;width:100%;font-variant-numeric:tabular-nums}
+
+.stage.memory{display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));gap:12px;max-width:calc(var(--cols,4) * 125px)}
+.stage.memory.p10{--cols:5}
+.levels{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.levels .chip-btn{font-size:1rem}
+.levels .chip-btn[aria-pressed="true"]{background:var(--sun)}
+.stage.pop{gap:4px 8px;max-width:680px}
+.pop .balloon{width:70px;height:105px}
+.choice.float{background:none;border:0;box-shadow:none;min-width:0;min-height:0;padding:2px;animation:float 3s ease-in-out infinite}
+.choice.float.nope{animation:wobble .4s}
+.choice.popped{animation:none;transform:scale(1.6);opacity:0;pointer-events:none;transition:transform .25s,opacity .25s}
+.world{font-size:clamp(90px,22vw,128px);line-height:1}
+.mcard{
+  aspect-ratio:1;max-width:100%;border:3px solid var(--ink);border-radius:18px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;
+  background:var(--grape) repeating-linear-gradient(45deg,transparent 0 10px,rgba(255,255,255,.18) 10px 20px);
+  font-size:clamp(34px,9vw,56px);line-height:1;display:grid;place-items:center;transition:transform .2s,background-color .2s;
+}
+.mcard .face{opacity:0;transform:scale(.4);transition:.2s}
+.mcard.up{background:var(--paper);transform:rotateY(0)}
+.mcard.up .face{opacity:1;transform:none}
+.mcard.done{background:var(--leaf-soft);animation:bounce .6s}
+
+/* celebration */
+.overlay{position:fixed;inset:0;background:var(--scrim);display:grid;place-items:center;padding:16px;z-index:10}
+.overlay canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.party{position:relative;background:var(--paper);border:3px solid var(--ink);border-radius:30px;box-shadow:8px 8px 0 var(--ink);padding:28px 24px;text-align:center;max-width:420px;width:100%;animation:pop .5s}
+.party svg{width:110px;height:110px;animation:spin 3s linear infinite}
+.party h2{font-size:2.6rem;margin:4px 0 0;line-height:1}
+.party p{font-family:var(--read);font-size:1.2rem;color:var(--muted);margin:6px 0 18px}
+.party .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.big-btn{border:3px solid var(--ink);border-radius:999px;padding:.55rem 1.4rem;font-weight:800;font-size:1.25rem;box-shadow:4px 4px 0 var(--ink);cursor:pointer;background:var(--sun)}
+.big-btn.alt{background:var(--paper)}
+.big-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+
+.clock{width:min(230px,62vw);height:auto;display:block}
+.tlabel{display:grid;gap:2px;font-weight:800;font-size:1.3rem;line-height:1.1}
+.tlabel small{font-family:var(--read);font-size:1.05rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.choice.wide{min-width:150px}
+.patrow{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;font-size:clamp(34px,8vw,50px);line-height:1}
+.patrow .q{display:inline-grid;place-items:center;width:1.25em;height:1.25em;border:3px dashed var(--ink);border-radius:14px;font:800 .7em/1 var(--display);color:var(--tomato)}
+.emo{font-size:3rem;line-height:1}
+.grpc{display:flex;flex-wrap:wrap;justify-content:center;max-width:200px;font-size:34px;line-height:1.1;gap:2px}
+.choice.side{min-width:150px;min-height:150px}
+.takerow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:560px}
+.obj2{font-size:clamp(40px,8vw,54px);line-height:1;transition:transform .7s,opacity .7s,filter .7s}
+.obj2.gone{opacity:.22;transform:translateY(-22px) rotate(-12deg);filter:grayscale(1)}
+.nrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.nbox{min-width:76px;height:76px;padding:0 8px;display:grid;place-items:center;border:3px solid var(--ink);border-radius:18px;background:var(--sky);font-size:2.4rem;font-weight:800;font-variant-numeric:tabular-nums}
+.nbox.miss{background:var(--paper);border-style:dashed;color:var(--tomato)}
+@keyframes bounce{0%,100%{transform:scale(1)}40%{transform:scale(1.15)}70%{transform:scale(.95)}}
+@keyframes wobble{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes bump{50%{transform:scale(1.3)}}
+@keyframes wiggle{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes pop{from{transform:scale(.6);opacity:.3}to{transform:none;opacity:1}}
+@keyframes float{50%{transform:translateY(-10px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:480px){
+  .stage.memory.p6{--cols:3}
+  .stage.memory.p10{--cols:4}
+  .pop .balloon{width:56px;height:84px}
+  .choice{min-width:86px;min-height:86px}
+  .balloon{width:64px;height:96px}
+  .shape{width:76px;height:76px}
+  .shape.ghost{width:130px;height:130px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 62,36 94,38 69,58 78,90 50,72 22,90 31,58 6,38 38,36" fill="#ffc93c" stroke="#1f2a44" stroke-width="6" stroke-linejoin="round"/></svg>
+      Little Sparks
+    </div>
+    <span class="pill" id="starPill" aria-label="Stars earned">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 62,36 94,38 69,58 78,90 50,72 22,90 31,58 6,38 38,36" fill="#ffc93c" stroke="#1f2a44" stroke-width="7" stroke-linejoin="round"/></svg>
+      <b id="stars">0</b>
+    </span>
+    <button class="chip-btn" id="soundBtn" aria-pressed="true" aria-label="Sound on">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path id="waves" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+      <span id="soundLbl">Sound</span>
+    </button>
+  </header>
+
+  <main id="home">
+    <section class="hero">
+      <h1>Let's play and <span>learn!</span></h1>
+      <p>Pick a game. Every right answer earns a star, and the games read every question out loud.</p>
+    </section>
+    <div class="grid" id="grid"></div>
+    <aside class="grownups">
+      <h2>For grown-ups</h2>
+      <ul>
+        <li>Made for ages 3 to 7. Start younger children on the 3+ games and sit with them for the first few rounds.</li>
+        <li>Each game has 5 to 10 questions, then a celebration. Short rounds suit short attention spans.</li>
+        <li>Wrong answers only fade out with a gentle “try again”, so children can explore without feeling told off.</li>
+        <li>No ads, no sign-in. Stars are saved on this device only.</li>
+      </ul>
+    </aside>
+  </main>
+
+  <main id="play" hidden>
+    <div class="playbar">
+      <button class="chip-btn" id="backBtn">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Games
+      </button>
+      <span class="title" id="gameTitle"></span>
+      <div class="dots" id="dots" aria-label="Progress"></div>
+      <button class="chip-btn" id="repeatBtn" aria-label="Hear the question again">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>Again
+      </button>
+    </div>
+    <section class="board">
+      <h2 id="prompt"></h2>
+      <div class="stage" id="stage"></div>
+      <div class="choices" id="choices"></div>
+      <p id="hint" aria-live="polite"></p>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <canvas id="confetti"></canvas>
+  <div class="party" role="dialog" aria-labelledby="partyTitle">
+    <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 62,36 94,38 69,58 78,90 50,72 22,90 31,58 6,38 38,36" fill="#ffc93c" stroke="#1f2a44" stroke-width="5" stroke-linejoin="round"/></svg>
+    <h2 id="partyTitle">You did it!</h2>
+    <p id="partyMsg">Super job!</p>
+    <div class="row">
+      <button class="big-btn" id="againBtn">Play again</button>
+      <button class="big-btn alt" id="homeBtn">More games</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const options = (correct, pool, k) => shuffle([correct, ...shuffle(pool.filter(x => x !== correct)).slice(0, k-1)]);
+const numOptions = (n, lo, hi, k) => {
+  let near = []; for (let d=-2; d<=2; d++) if (d && n+d>=lo && n+d<=hi) near.push(n+d);
+  return options(n, [n, ...near], k);
+};
+const STAR = (on) => `<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,6 62,36 94,38 69,58 78,90 50,72 22,90 31,58 6,38 38,36" fill="${on?'#ffc93c':'#fffdf6'}" stroke="#1f2a44" stroke-width="7" stroke-linejoin="round"/></svg>`;
+const PRAISE = ['Great job!','You got it!','Super!','Well done!','Yay, that is right!','Awesome!'];
+
+/* ---------- stars (saved on this device) ---------- */
+let stars = 0;
+try { stars = parseInt(localStorage.getItem('ls-stars') || '0', 10) || 0; } catch(e) {}
+const renderStars = () => { $('#stars').textContent = stars; };
+function addStar(){
+  stars++; renderStars();
+  try { localStorage.setItem('ls-stars', String(stars)); } catch(e) {}
+  const p = $('#starPill'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump');
+}
+renderStars();
+
+/* ---------- sound + voice ---------- */
+let soundOn = true;
+try { soundOn = localStorage.getItem('ls-sound') !== 'off'; } catch(e) {}
+function syncSound(){
+  const b = $('#soundBtn'); b.setAttribute('aria-pressed', String(soundOn));
+  b.setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off');
+  $('#soundLbl').textContent = soundOn ? 'Sound' : 'Muted';
+  $('#waves').style.display = soundOn ? '' : 'none';
+}
+$('#soundBtn').onclick = () => {
+  soundOn = !soundOn; syncSound();
+  try { localStorage.setItem('ls-sound', soundOn ? 'on' : 'off'); } catch(e) {}
+  if (!soundOn) { try { speechSynthesis.cancel(); } catch(e) {} } else say('Sound is on');
+};
+syncSound();
+
+let voice = null;
+function findVoice(){
+  try {
+    const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
+    voice = vs.find(v => /female|samantha|karen|google us|zira|aria|jenny/i.test(v.name)) || vs[0] || null;
+  } catch(e) {}
+}
+try { findVoice(); speechSynthesis.onvoiceschanged = findVoice; } catch(e) {}
+function say(text){
+  if (!soundOn || !text) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = .88; u.pitch = 1.15; u.lang = 'en-US'; if (voice) u.voice = voice;
+    speechSynthesis.speak(u);
+  } catch(e) {}
+}
+
+let actx = null;
+function ac(){
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch(e) {}
+  return actx;
+}
+function tone(f, t0, d, type='sine', v=.18){
+  if (!soundOn) return; const a = ac(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + t0;
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t+.02); g.gain.exponentialRampToValueAtTime(.0001, t+d);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t+d+.05);
+}
+const chime = () => { tone(660,0,.25,'triangle'); tone(880,.12,.4,'triangle'); };
+const boop = () => tone(200,0,.3,'sine',.12);
+const pop = () => tone(540,0,.08,'square',.04);
+const fanfare = () => [523,659,784,1047].forEach((f,i) => tone(f,i*.14,.45,'triangle',.16));
+
+/* ---------- content ---------- */
+const COUNT_ITEMS = [['🍎','apples','apple'],['⭐','stars','star'],['🐟','fish','fish'],['🦆','ducks','duck'],['🍓','strawberries','strawberry'],['🎈','balloons','balloon'],['🐞','ladybugs','ladybug'],['🌸','flowers','flower'],['🚗','cars','car'],['🐝','bees','bee']];
+const COLORS = [
+  {n:'red',c:'#e8453c'},{n:'blue',c:'#2f7de1'},{n:'yellow',c:'#ffd23f'},{n:'green',c:'#3bb273'},
+  {n:'orange',c:'#ff8c2b'},{n:'purple',c:'#8e5bd6'},{n:'pink',c:'#ff7fb0'},{n:'brown',c:'#8b5a3c'},
+  {n:'black',c:'#2a2a2e'},{n:'white',c:'#ffffff'},{n:'grey',c:'#9aa3ad'},{n:'gold',c:'#d9a521'}
+];
+const SHAPE_FACTS = {
+  circle:'A circle is round. It has no corners.', square:'A square has 4 sides, all the same.',
+  triangle:'A triangle has 3 sides.', rectangle:'A rectangle has 2 long sides and 2 short sides.',
+  star:'This star has 5 points.', heart:'A heart, like a love card!', oval:'An oval is shaped like an egg.',
+  diamond:'A diamond is a square standing on its corner.',
+  pentagon:'A pentagon has 5 sides.', hexagon:'A hexagon has 6 sides, like a honeycomb.',
+  octagon:'An octagon has 8 sides, like a stop sign.', crescent:'A crescent is shaped like the moon at night.',
+  semicircle:'A semicircle is half of a circle.', cross:'A cross has 4 arms, like a plus sign.'
+};
+const SHAPE_WORLD = [
+  ['🍕','pizza slice','triangle'],['🧀','cheese','triangle'],['⚽','ball','circle'],['🍩','donut','circle'],['🍪','cookie','circle'],
+  ['🥚','egg','oval'],['🎁','present','square'],['🌙','moon','crescent'],['⭐','star','star'],['❤️','heart','heart'],
+  ['🚪','door','rectangle'],['📱','phone','rectangle'],['💎','gem','diamond'],['🛑','stop sign','octagon'],['➕','plus sign','cross']
+];
+const SHAPES = Object.keys(SHAPE_FACTS);
+const SHAPE_COLORS = ['#ff6b4a','#3a8dde','#4cc38a','#ffc93c','#9b6bd6','#ff9cbd'];
+const poly = (n, r, rot=-Math.PI/2) => Array.from({length:n}, (_,i) => { const a = rot + i*2*Math.PI/n; return (50+r*Math.cos(a)).toFixed(1)+','+(50+r*Math.sin(a)).toFixed(1); }).join(' ');
+const STAR_PTS = (() => { const p=[]; for (let i=0;i<10;i++){ const r=i%2?19:44, a=-Math.PI/2+i*Math.PI/5; p.push((50+r*Math.cos(a)).toFixed(1)+','+(53+r*Math.sin(a)).toFixed(1)); } return p.join(' '); })();
+function shapeSVG(name, fill, cls='shape', dashed=false){
+  const s = `fill="${fill}" stroke="currentColor" stroke-width="4" stroke-linejoin="round"${dashed?' stroke-dasharray="9 7"':''}`;
+  const body = {
+    circle:`<circle cx="50" cy="50" r="40" ${s}/>`,
+    square:`<rect x="12" y="12" width="76" height="76" rx="3" ${s}/>`,
+    triangle:`<polygon points="50,10 92,88 8,88" ${s}/>`,
+    rectangle:`<rect x="5" y="27" width="90" height="46" rx="3" ${s}/>`,
+    star:`<polygon points="${STAR_PTS}" ${s}/>`,
+    heart:`<path d="M50 88C20 65 6 48 6 32 6 18 17 8 30 8c10 0 16 6 20 14 4-8 10-14 20-14 13 0 24 10 24 24 0 16-14 33-44 56z" ${s}/>`,
+    oval:`<ellipse cx="50" cy="50" rx="44" ry="29" ${s}/>`,
+    diamond:`<polygon points="50,6 92,50 50,94 8,50" ${s}/>`,
+    pentagon:`<polygon points="${poly(5,44)}" transform="translate(0 4)" ${s}/>`,
+    hexagon:`<polygon points="${poly(6,44,0)}" ${s}/>`,
+    octagon:`<polygon points="${poly(8,44,Math.PI/8)}" ${s}/>`,
+    crescent:`<path d="M60 8A44 44 0 1 0 60 92A50 50 0 0 1 60 8Z" transform="translate(18 0)" ${s}/>`,
+    semicircle:`<path d="M8 70A42 42 0 0 1 92 70Z" transform="translate(0 -6)" ${s}/>`,
+    cross:`<polygon points="35,8 65,8 65,35 92,35 92,65 65,65 65,92 35,92 35,65 8,65 8,35 35,35" ${s}/>`
+  }[name];
+  return `<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true">${body}</svg>`;
+}
+const balloon = c => `<svg class="balloon" viewBox="0 0 80 120" aria-hidden="true"><path d="M40 88q-5 12 3 20t-3 12" fill="none" stroke="currentColor" stroke-width="2.5"/><ellipse cx="40" cy="44" rx="30" ry="38" fill="${c}" stroke="currentColor" stroke-width="3"/><path d="M34 81h12l-6 8z" fill="${c}" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="29" cy="29" rx="6" ry="10" fill="#fff" opacity=".45"/></svg>`;
+const WORDS = [
+  ['🍎','apple'],['🐻','bear'],['🐱','cat'],['🐶','dog'],['🥚','egg'],['🐸','frog'],['🍇','grapes'],['🎩','hat'],
+  ['🍦','ice cream'],['🧃','juice'],['🔑','key'],['🦁','lion'],['🌙','moon'],['👃','nose'],['🐙','octopus'],['🐷','pig'],
+  ['👸','queen'],['🌈','rainbow'],['☀️','sun'],['🐯','tiger'],['☂️','umbrella'],['🚐','van'],['🍉','watermelon'],['🧶','yarn'],['🦓','zebra'],
+  ['🍌','banana'],['🚌','bus'],['🦒','giraffe'],['🐘','elephant'],['🐭','mouse'],['🍊','orange'],['🌳','tree']
+];
+const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWYZ'.split('');
+const ANIMALS = [
+  ['🐶','dog','dogs'],['🐱','cat','cats'],['🐼','panda','pandas'],['🐸','frog','frogs'],['🦁','lion','lions'],['🐵','monkey','monkeys'],
+  ['🐷','pig','pigs'],['🐰','bunny','bunnies'],['🐨','koala','koalas'],['🐯','tiger','tigers'],['🐮','cow','cows'],['🐔','chicken','chickens'],
+  ['🦊','fox','foxes'],['🐻','bear','bears'],['🐘','elephant','elephants'],['🦒','giraffe','giraffes'],['🦓','zebra','zebras'],['🐧','penguin','penguins'],
+  ['🦉','owl','owls'],['🐢','turtle','turtles'],['🐙','octopus','octopuses'],['🐳','whale','whales'],['🐴','horse','horses'],['🐑','sheep','sheep'],
+  ['🦆','duck','ducks'],['🦋','butterfly','butterflies'],['🦀','crab','crabs'],['🐌','snail','snails']
+];
+const MEM_LEVELS = [{n:'Easy',p:4},{n:'Medium',p:6},{n:'Hard',p:8},{n:'Super',p:10}];
+let memPairs = 6;
+try { memPairs = parseInt(localStorage.getItem('ls-mem') || '6', 10) || 6; } catch(e) {}
+
+/* ---------- engine ---------- */
+let current = null, got = 0, lock = false, lastSay = '';
+const stage = $('#stage'), choicesBox = $('#choices'), hint = $('#hint');
+
+function setPrompt(html, speech){
+  $('#prompt').innerHTML = html; lastSay = speech; hint.textContent = ''; say(speech);
+}
+function setStage(cls, html=''){
+  stage.style.removeProperty('--cols');
+  stage.className = 'stage' + (cls ? ' '+cls : ''); stage.innerHTML = html; stage.hidden = !html && !cls;
+}
+function renderDots(){
+  $('#dots').innerHTML = Array.from({length: current.goal}, (_,i) => `<span class="${i<got?'on':''}">${STAR(i<got)}</span>`).join('');
+  $('#dots').setAttribute('aria-label', `${got} of ${current.goal} done`);
+}
+function makeChoices(list, correct, render, label, onRight){
+  choicesBox.innerHTML = '';
+  list.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'choice'; b.innerHTML = render(v); b.setAttribute('aria-label', label(v));
+    b.onclick = () => { if (lock || b.disabled) return; v === correct ? right(b, onRight) : wrong(b); };
+    choicesBox.appendChild(b);
+  });
+}
+function right(b, onRight){
+  lock = true; b.classList.add('yay');
+  award(onRight ? onRight() : pick(PRAISE));
+}
+function award(msg){
+  lock = true; chime(); addStar(); got++; renderDots();
+  hint.textContent = msg; say(msg);
+  setTimeout(() => { if (got >= current.goal) celebrate(); else { lock = false; current.next(); } }, 1700);
+}
+function wrong(b){
+  b.classList.add('nope'); b.disabled = true; boop();
+  hint.textContent = 'Almost! Try again.'; say('Try again!');
+}
+
+/* ---------- games ---------- */
+function countNext(){
+  const [e, name, one] = pick(COUNT_ITEMS), n = rand(1, 10);
+  setStage('count');
+  let counted = 0;
+  for (let i=0; i<n; i++){
+    const o = document.createElement('button');
+    o.className = 'obj'; o.textContent = e; o.setAttribute('aria-label', 'Count this one');
+    o.onclick = () => { if (o.dataset.n) return; counted++; o.dataset.n = counted; o.classList.add('counted'); pop(); say(String(counted)); };
+    stage.appendChild(o);
+  }
+  setPrompt(`How many <b>${name}</b>?`, `How many ${name}? Tap each one to count.`);
+  hint.textContent = 'Tip: tap each one to count it.';
+  makeChoices(numOptions(n,1,10,3), n, v => `<span class="num">${v}</span>`, v => String(v), () => `Yes! ${n} ${n===1 ? one : name}!`);
+}
+
+const swatch = c => `<span class="sw" style="background:${c.c}"></span>`;
+function colorNext(){
+  if (got % 2 === 1) return colorPop();
+  const t = pick(COLORS);
+  setStage('');
+  setPrompt(`Tap the ${swatch(t)}${t.n} balloon`, `Tap the ${t.n} balloon!`);
+  makeChoices(options(t, COLORS, got < 4 ? 4 : 6), t, v => balloon(v.c), v => v.n + ' balloon', () => `Yes! That balloon is ${t.n}!`);
+}
+function colorPop(){
+  const t = pick(COLORS), k = rand(2, 4), others = shuffle(COLORS.filter(c => c !== t)).slice(0, 4);
+  const list = shuffle([...Array(k).fill(t), ...Array.from({length: rand(5, 7)}, (_, i) => others[i % others.length])]);
+  setStage('pop'); choicesBox.innerHTML = '';
+  let left = k;
+  list.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'choice float'; b.style.animationDelay = (-Math.random()*3).toFixed(2) + 's';
+    b.innerHTML = balloon(c.c); b.setAttribute('aria-label', c.n + ' balloon');
+    b.onclick = () => {
+      if (lock || b.disabled || b.classList.contains('popped')) return;
+      if (c !== t) return wrong(b);
+      b.classList.add('popped'); tone(900,0,.12,'triangle',.15); left--;
+      if (!left) award(`You popped all the ${t.n} balloons!`);
+      else { hint.textContent = `${left} more ${t.n}!`; say(`${left} more`); }
+    };
+    stage.appendChild(b);
+  });
+  setPrompt(`Pop all the ${swatch(t)}${t.n} balloons`, `Pop all the ${t.n} balloons!`);
+  hint.textContent = `There are ${k} to find.`;
+}
+
+function shapeNext(){
+  if (got % 3 === 2) return shapeWorld();
+  const t = pick(SHAPES), cols = shuffle(SHAPE_COLORS);
+  setStage('shapes', shapeSVG(t, 'none', 'shape ghost', true));
+  setPrompt(`Find the <b>${t}</b>`, `Can you find the ${t}?`);
+  const opts = options(t, SHAPES, got < 4 ? 4 : 5);
+  makeChoices(opts, t, v => shapeSVG(v, cols[opts.indexOf(v)]), v => v, () => {
+    setStage('shapes', shapeSVG(t, cols[opts.indexOf(t)], 'shape ghost'));
+    return SHAPE_FACTS[t];
+  });
+}
+function shapeWorld(){
+  const [e, thing, t] = pick(SHAPE_WORLD), cols = shuffle(SHAPE_COLORS);
+  setStage('shapes', `<div class="world" aria-hidden="true">${e}</div>`);
+  setPrompt(`What shape is the <b>${thing}</b>?`, `What shape is the ${thing}?`);
+  const opts = options(t, SHAPES, 4);
+  makeChoices(opts, t, v => shapeSVG(v, cols[opts.indexOf(v)]), v => v, () => `Yes! The ${thing} is shaped like a ${t}!`);
+}
+
+function letterNext(){
+  const [e, w] = pick(WORDS), L = w[0].toUpperCase();
+  setStage('letters', `<div class="pic" aria-hidden="true">${e}</div><div class="word"><span class="blank" id="blank">?</span>${w.slice(1)}</div>`);
+  setPrompt('Which letter does it start with?', `${w}. Which letter does ${w} start with?`);
+  makeChoices(options(L, ALPHA, 3), L, v => `<span class="letter">${v}${v.toLowerCase()}</span>`, v => 'Letter ' + v, () => {
+    const b = $('#blank'); if (b) b.textContent = w[0];
+    return `${L} is for ${w}!`;
+  });
+}
+
+function sumNext(){
+  const a = rand(1,5), b = rand(1, Math.min(5, 10-a)), n = a + b;
+  const cookies = k => Array.from({length:k}, () => '<span>🍪</span>').join('');
+  setStage('sums', `<div class="sum"><div class="grp" aria-label="${a} cookies">${cookies(a)}</div><span class="op">+</span><div class="grp" aria-label="${b} cookies">${cookies(b)}</div></div><div class="eq">${a} + ${b} = <span class="blank" id="blank">?</span></div>`);
+  setPrompt('How many cookies in all?', `${a} plus ${b}. How many cookies in all?`);
+  makeChoices(numOptions(n,2,10,3), n, v => `<span class="num">${v}</span>`, v => String(v), () => {
+    const bl = $('#blank'); if (bl) bl.textContent = n;
+    return `${a} plus ${b} makes ${n}!`;
+  });
+}
+
+function memoryNext(){
+  current.goal = memPairs; renderDots();
+  choicesBox.innerHTML = `<div class="levels" role="group" aria-label="How many pairs">${MEM_LEVELS.map(l => `<button class="chip-btn" data-p="${l.p}" aria-pressed="${l.p === memPairs}">${l.n} · ${l.p} pairs</button>`).join('')}</div>`;
+  choicesBox.querySelectorAll('[data-p]').forEach(b => b.onclick = () => {
+    memPairs = +b.dataset.p; try { localStorage.setItem('ls-mem', String(memPairs)); } catch(e) {}
+    got = 0; memoryNext();
+  });
+  const deck = shuffle(shuffle(ANIMALS).slice(0, memPairs).flatMap(x => [x, x]));
+  setStage('memory p' + memPairs);
+  let first = null, busy = false;
+  deck.forEach(([e, name, many]) => {
+    const c = document.createElement('button');
+    c.className = 'mcard'; c.dataset.e = e; c.innerHTML = `<span class="face" aria-hidden="true">${e}</span>`; c.setAttribute('aria-label', 'Hidden card');
+    c.onclick = () => {
+      if (busy || c.classList.contains('up')) return;
+      c.classList.add('up'); c.setAttribute('aria-label', name); pop();
+      if (!first){ first = c; say(name); return; }
+      if (first.dataset.e === c.dataset.e){
+        first.classList.add('done'); c.classList.add('done'); first = null;
+        chime(); addStar(); got++; renderDots();
+        const msg = `A match! Two ${many}!`;
+        hint.textContent = msg; say(msg);
+        if (got >= current.goal) setTimeout(celebrate, 1200);
+      } else {
+        busy = true; const f = first; first = null; say(name);
+        setTimeout(() => { [f, c].forEach(x => { x.classList.remove('up'); x.setAttribute('aria-label','Hidden card'); }); busy = false; }, 1000);
+      }
+    };
+    stage.appendChild(c);
+  });
+  setPrompt('Find the matching pairs', 'Flip two cards. Find the animals that match!');
+  hint.textContent = 'Tap a card to flip it.';
+}
+
+/* ---------- more games ---------- */
+function clockSVG(h, m){
+  const ma = m*6, ha = (h%12)*30 + m*.5;
+  let nums = '';
+  for (let i=1;i<=12;i++){ const a = i*Math.PI/6 - Math.PI/2; nums += `<text x="${(60+41*Math.cos(a)).toFixed(1)}" y="${(60+41*Math.sin(a)).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="800" fill="currentColor" font-family="Baloo 2, sans-serif">${i}</text>`; }
+  let ticks = '';
+  for (let i=0;i<60;i++){ if (i%5) { const a = i*Math.PI/30; ticks += `<line x1="${(60+51*Math.cos(a)).toFixed(1)}" y1="${(60+51*Math.sin(a)).toFixed(1)}" x2="${(60+48*Math.cos(a)).toFixed(1)}" y2="${(60+48*Math.sin(a)).toFixed(1)}" stroke="currentColor" stroke-width="1.2" opacity=".5"/>`; } }
+  return `<svg class="clock" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="55" fill="#fffdf6" stroke="currentColor" stroke-width="5"/>${ticks}${nums}
+    <line x1="60" y1="60" x2="60" y2="20" stroke="#3a8dde" stroke-width="4" stroke-linecap="round" transform="rotate(${ma} 60 60)"/>
+    <line x1="60" y1="60" x2="60" y2="33" stroke="#ff6b4a" stroke-width="7" stroke-linecap="round" transform="rotate(${ha} 60 60)"/>
+    <circle cx="60" cy="60" r="5" fill="currentColor"/></svg>`;
+}
+const timeWords = (h, m) => m===0 ? `${h} o'clock` : m===30 ? `half past ${h}` : m===15 ? `quarter past ${h}` : `quarter to ${h%12+1}`;
+const timeDigits = (h, m) => `${h}:${String(m).padStart(2,'0')}`;
+function clockNext(){
+  const mins = got < 3 ? [0] : got < 6 ? [0,30] : [0,30,15,45];
+  const key = (h,m) => h + ':' + m;
+  const h = rand(1,12), m = pick(mins), correct = key(h,m);
+  const pool = new Set([correct]);
+  while (pool.size < 3){ pool.add(key(rand(1,12), pick(mins))); }
+  setStage('clockst', clockSVG(h, m));
+  setPrompt('What time is it?', 'Look at the clock. What time is it?');
+  hint.textContent = 'The short red hand shows the hour.';
+  makeChoices(shuffle([...pool]), correct, k => { const [a,b] = k.split(':').map(Number); return `<span class="tlabel">${timeWords(a,b)}<small>${timeDigits(a,b)}</small></span>`; },
+    k => { const [a,b] = k.split(':').map(Number); return timeWords(a,b); },
+    () => m===0 ? `The short hand points to ${h} and the long hand points to 12. It's ${h} o'clock!`
+      : m===30 ? `The long hand points to 6. It's half past ${h}!`
+      : m===15 ? `The long hand points to 3. It's quarter past ${h}!`
+      : `The long hand points to 9. It's quarter to ${h%12+1}!`);
+  choicesBox.querySelectorAll('.choice').forEach(b => b.classList.add('wide'));
+}
+
+const TAKE_ITEMS = [['🐸','frogs','hop away'],['🐦','birds','fly away'],['🎈','balloons','float away'],['🐟','fish','swim away'],['🍪','cookies','get eaten'],['🐝','bees','buzz away']];
+function takeNext(){
+  const a = got < 3 ? rand(2,5) : rand(4,10), b = rand(1, a-1), n = a - b;
+  const [e, name, verb] = pick(TAKE_ITEMS);
+  setStage('take', `<div class="takerow">${Array.from({length:a}, (_,i) => `<span class="obj2" data-i="${i}">${e}</span>`).join('')}</div><div class="eq">${a} − ${b} = <span class="blank" id="blank">?</span></div>`);
+  setTimeout(() => stage.querySelectorAll('.obj2').forEach(o => { if (+o.dataset.i >= n) o.classList.add('gone'); }), 900);
+  setPrompt(`${a} ${name}. ${b} ${verb}. How many are left?`, `${a} ${name}. ${b} ${verb}. How many are left?`);
+  makeChoices(numOptions(n,0,10,3), n, v => `<span class="num">${v}</span>`, v => String(v), () => {
+    const bl = $('#blank'); if (bl) bl.textContent = n;
+    return `${a} take away ${b} is ${n}!`;
+  });
+}
+
+const PAT_SETS = [['🔴','🔵','🟡','🟢'],['🍎','🍌','🍇','🍊'],['🐶','🐱','🐰','🐸'],['⭐','🌙','☀️','☁️'],['🚗','🚌','🚲','✈️'],['🌸','🍀','🍄','🌻']];
+function patternNext(){
+  const type = got < 2 ? 'AB' : pick(['AB','AAB','ABB','ABC','AABB','ABCD'].slice(0, got < 4 ? 4 : 6));
+  const set = shuffle(pick(PAT_SETS)), map = {A:set[0], B:set[1], C:set[2], D:set[3]};
+  const unit = type.split('').map(c => map[c]);
+  const total = unit.length*2 + rand(1, unit.length);
+  const seq = Array.from({length: total}, (_,i) => unit[i % unit.length]);
+  const ans = seq[total-1];
+  setStage('pattern', `<div class="patrow">${seq.slice(0,-1).map(x => `<span>${x}</span>`).join('')}<span class="q" id="patq">?</span></div>`);
+  setPrompt('What comes next?', 'Look at the pattern. What comes next?');
+  const opts = options(ans, [...new Set(set)], 3);
+  makeChoices(opts, ans, v => `<span class="emo">${v}</span>`, v => v, () => {
+    const q = $('#patq'); if (q) { q.textContent = ans; q.style.borderStyle = 'solid'; q.style.fontSize = '1em'; }
+    return pick(['Yes! The pattern keeps going!', 'You found the pattern!', 'That comes next!']);
+  });
+}
+
+function moreNext(){
+  const wantMore = got % 2 === 0;
+  const [e, name] = pick(COUNT_ITEMS);
+  let a = rand(1, got < 3 ? 6 : 10), b = rand(1, got < 3 ? 6 : 10);
+  while (a === b || (got < 3 && Math.abs(a-b) < 2)) b = rand(1, got < 3 ? 6 : 10);
+  const big = Math.max(a,b), small = Math.min(a,b);
+  const correct = (wantMore ? a > b : a < b) ? 'L' : 'R';
+  setStage('');
+  setPrompt(`Which side has <b>${wantMore ? 'more' : 'fewer'}</b> ${name}?`, `Which side has ${wantMore ? 'more' : 'fewer'} ${name}?`);
+  const grp = k => `<span class="grpc">${Array.from({length:k}, () => `<span>${e}</span>`).join('')}</span>`;
+  makeChoices(['L','R'], correct, v => grp(v==='L' ? a : b), v => `${v==='L'?'Left':'Right'} side, ${v==='L'?a:b} ${name}`,
+    () => wantMore ? `Yes! ${big} is more than ${small}!` : `Yes! ${small} is fewer than ${big}!`);
+  choicesBox.querySelectorAll('.choice').forEach(b => b.classList.add('side'));
+}
+
+const CATS = {
+  'fruits': [['🍎','apple'],['🍌','banana'],['🍇','grapes'],['🍊','orange'],['🍓','strawberry'],['🍉','watermelon'],['🍐','pear'],['🍒','cherries']],
+  'animals': [['🐶','dog'],['🐱','cat'],['🐮','cow'],['🐷','pig'],['🐸','frog'],['🦁','lion'],['🐵','monkey'],['🐰','bunny']],
+  'things that go': [['🚗','car'],['🚌','bus'],['🚲','bike'],['✈️','plane'],['🚂','train'],['🚀','rocket'],['🚜','tractor'],['⛵','boat']],
+  'things we wear': [['👕','shirt'],['👖','jeans'],['🧦','socks'],['👗','dress'],['🧢','cap'],['🧤','gloves'],['👟','shoe'],['🧣','scarf']]
+};
+function oddNext(){
+  const [cat, other] = shuffle(Object.keys(CATS));
+  const three = shuffle(CATS[cat]).slice(0,3), odd = pick(CATS[other]);
+  setStage('');
+  setPrompt('Which one does <b>not</b> belong?', 'Which one does not belong?');
+  makeChoices(shuffle([...three, odd]), odd, v => `<span class="emo">${v[0]}</span>`, v => v[1],
+    () => `Yes! The ${odd[1]} is different. The others are all ${cat}.`);
+}
+
+function missNext(){
+  const step = got >= 3 && Math.random() < .5 ? 2 : 1;
+  const start = step === 1 ? rand(1, got < 3 ? 6 : 16) : pick([2,4,6,8,10]);
+  const seq = Array.from({length:5}, (_,i) => start + i*step);
+  const hide = rand(1, 4), ans = seq[hide];
+  setStage('miss', `<div class="nrow">${seq.map((v,i) => i===hide ? `<span class="nbox miss" id="nmiss">?</span>` : `<span class="nbox">${v}</span>`).join('')}</div>`);
+  setPrompt(step === 1 ? 'Which number is missing?' : 'Count by 2s. Which number is missing?',
+    step === 1 ? 'Count along. Which number is missing?' : 'Count by twos. Which number is missing?');
+  makeChoices(numOptions(ans, 0, 30, 3), ans, v => `<span class="num">${v}</span>`, v => String(v), () => {
+    const m = $('#nmiss'); if (m) m.textContent = ans;
+    return `Yes! ${seq.join(', ')}!`;
+  });
+}
+
+const GAMES = [
+  {id:'count',   name:'Count With Me',  icon:'🐞', skill:'Counting from 1 to 10',        age:'Ages 3+', c:'var(--tomato)', goal:5, next:countNext},
+  {id:'colors',  name:'Balloon Colors', icon:'🎈', skill:'12 colours, tap and pop',        age:'Ages 3+', c:'var(--sea)',    goal:8, next:colorNext},
+  {id:'shapes',  name:'Shape Finder',   icon:'🔷', skill:'14 shapes, and shapes around us', age:'Ages 3+', c:'var(--leaf)',   goal:8, next:shapeNext},
+  {id:'more',    name:'More or Fewer',  icon:'⚖️', skill:'Comparing groups',             age:'Ages 3+', c:'var(--sun)',    goal:6, next:moreNext},
+  {id:'memory',  name:'Animal Memory',  icon:'🐼', skill:'28 animals, 4 to 10 pairs',      age:'Ages 4+', c:'var(--pink)',   goal:6, next:memoryNext},
+  {id:'odd',     name:'Odd One Out',    icon:'🧩', skill:'Sorting into groups',          age:'Ages 4+', c:'var(--leaf)',   goal:6, next:oddNext},
+  {id:'pattern', name:'Pattern Train',  icon:'🌈', skill:'Spotting what comes next',     age:'Ages 4+', c:'var(--sea)',    goal:6, next:patternNext},
+  {id:'letters', name:'First Letters',  icon:'🔤', skill:'Phonics: the starting sound',   age:'Ages 4+', c:'var(--grape)',  goal:5, next:letterNext},
+  {id:'sums',    name:'Cookie Sums',    icon:'🍪', skill:'Adding numbers up to 10',       age:'Ages 5+', c:'var(--sun)',    goal:5, next:sumNext},
+  {id:'take',    name:'Take Away',      icon:'🐸', skill:'Subtracting within 10',        age:'Ages 5+', c:'var(--tomato)', goal:6, next:takeNext},
+  {id:'missing', name:'Missing Numbers',icon:'🔢', skill:'Counting on to 20, and by 2s', age:'Ages 5+', c:'var(--pink)',   goal:6, next:missNext},
+  {id:'clock',   name:'Tell the Time',  icon:'⏰', skill:"O'clock, half past, quarters",  age:'Ages 6+', c:'var(--grape)',  goal:8, next:clockNext},
+];
+
+$('#grid').innerHTML = GAMES.map(g => `
+  <button class="tile" data-id="${g.id}" style="--c:${g.c}">
+    <span class="art" aria-hidden="true">${g.icon}</span>
+    <span><h3>${g.name}</h3><span class="skill">${g.skill}</span><span class="age">${g.age}</span></span>
+  </button>`).join('');
+document.querySelectorAll('.tile').forEach(t => t.onclick = () => openGame(t.dataset.id));
+
+function openGame(id){
+  ac();
+  current = GAMES.find(g => g.id === id); got = 0; lock = false;
+  $('#home').hidden = true; $('#play').hidden = false; $('#overlay').hidden = true;
+  $('#gameTitle').textContent = current.name;
+  renderDots(); current.next(); window.scrollTo(0,0);
+}
+function goHome(){
+  try { speechSynthesis.cancel(); } catch(e) {}
+  $('#overlay').hidden = true; $('#play').hidden = true; $('#home').hidden = false; current = null; window.scrollTo(0,0);
+}
+$('#backBtn').onclick = goHome;
+$('#homeBtn').onclick = goHome;
+$('#repeatBtn').onclick = () => say(lastSay);
+$('#againBtn').onclick = () => openGame(current.id);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && current) goHome(); });
+
+/* ---------- celebration ---------- */
+function celebrate(){
+  const msgs = ['You earned ' + current.goal + ' stars!', 'Super star learner!', 'Amazing work!'];
+  $('#partyMsg').textContent = pick(msgs);
+  $('#overlay').hidden = false; fanfare();
+  setTimeout(() => say('You did it! ' + $('#partyMsg').textContent), 500);
+  confetti(); $('#againBtn').focus();
+}
+function confetti(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv = $('#confetti'), ctx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  const W = cv.width = innerWidth*dpr, H = cv.height = innerHeight*dpr;
+  const cols = ['#ff6b4a','#ffc93c','#4cc38a','#3a8dde','#9b6bd6','#ff9cbd'];
+  const ps = Array.from({length:140}, () => ({x:Math.random()*W, y:-Math.random()*H*.5, vx:(Math.random()-.5)*3*dpr, vy:(2+Math.random()*4)*dpr, r:(5+Math.random()*7)*dpr, a:Math.random()*6, c:pick(cols)}));
+  const t0 = performance.now();
+  (function frame(t){
+    ctx.clearRect(0,0,W,H);
+    ps.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.a+=.1; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2); ctx.restore(); });
+    if (t - t0 < 3500 && !$('#overlay').hidden) requestAnimationFrame(frame); else ctx.clearRect(0,0,W,H);
+  })(t0);
+}
+</script>
+</body>
+</html>
